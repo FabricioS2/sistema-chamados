@@ -1,0 +1,524 @@
+### =====================================================================================
+### Sistema de Chamados do IFRN - colecao de requisicoes
+###
+### Funciona no VS Code (extensao REST Client) e no IntelliJ HTTP Client.
+### Suba a API com `docker compose up --build` e execute os blocos na ordem:
+### eles reaproveitam ids criados pelos blocos anteriores (variaveis @idChamado etc.).
+###
+### Todos os endpoints da secao 4 do enunciado estao cobertos, incluindo os casos de erro.
+### =====================================================================================
+
+@host = http://localhost:8080
+
+### Indice da API (rota extra de conveniencia)
+GET {{host}}/
+
+
+### =====================================================================================
+### 1. SETORES
+### =====================================================================================
+
+### 1.1 Lista setores paginada (filtro opcional: nome)
+GET {{host}}/setores?page=0&size=10&sort=nome,asc
+
+### 1.2 Lista setores filtrando por nome (contem, sem diferenciar maiusculas)
+GET {{host}}/setores?nome=manut
+
+### 1.3 Detalha um setor
+GET {{host}}/setores/1
+
+### 1.4 Setor inexistente -> 404
+GET {{host}}/setores/999
+
+### 1.5 Cria um setor -> 201 + Location
+# @name criarSetor
+POST {{host}}/setores
+Content-Type: application/json
+
+{
+  "nome": "Coordenação de Apoio Acadêmico",
+  "sigla": "CAAC"
+}
+
+### 1.6 Sigla duplicada -> 409
+POST {{host}}/setores
+Content-Type: application/json
+
+{
+  "nome": "Outro setor",
+  "sigla": "cotic"
+}
+
+### 1.7 Campos obrigatorios vazios -> 400 com a lista de campos invalidos
+POST {{host}}/setores
+Content-Type: application/json
+
+{
+  "nome": "",
+  "sigla": ""
+}
+
+### 1.8 Atualiza um setor -> 200
+PUT {{host}}/setores/{{criarSetor.response.body.id}}
+Content-Type: application/json
+
+{
+  "nome": "Coordenação de Apoio Acadêmico e Estudantil",
+  "sigla": "CAAC"
+}
+
+### 1.9 Regra 8: setor com chamados vinculados nao pode ser excluido -> 409
+DELETE {{host}}/setores/1
+
+### 1.10 Setor sem vinculos pode ser excluido -> 204
+DELETE {{host}}/setores/{{criarSetor.response.body.id}}
+
+### 1.11 Categorias de um setor (paginada)
+GET {{host}}/setores/1/categorias?page=0&size=10&sort=nome,asc
+
+
+### =====================================================================================
+### 2. CATEGORIAS
+### =====================================================================================
+
+### 2.1 Lista categorias paginada
+GET {{host}}/categorias?page=0&size=10&sort=nome,asc
+
+### 2.2 Filtro por nome
+GET {{host}}/categorias?nome=wi-fi
+
+### 2.3 Filtro por setorId
+GET {{host}}/categorias?setorId=1
+
+### 2.4 Filtros combinados
+GET {{host}}/categorias?setorId=2&nome=projetor
+
+### 2.5 Detalha uma categoria
+GET {{host}}/categorias/1
+
+### 2.6 Categoria inexistente -> 404
+GET {{host}}/categorias/999
+
+### 2.7 Cria uma categoria -> 201 + Location
+# @name criarCategoria
+POST {{host}}/categorias
+Content-Type: application/json
+
+{
+  "nome": "Telefonia e Ramais",
+  "descricao": "Ramais sem sinal, ruido na linha e mudanca de numero.",
+  "setorId": 2
+}
+
+### 2.8 Setor inexistente -> 404
+POST {{host}}/categorias
+Content-Type: application/json
+
+{
+  "nome": "Categoria orfa",
+  "descricao": "Setor nao existe.",
+  "setorId": 999
+}
+
+### 2.9 Sem setorId -> 400
+POST {{host}}/categorias
+Content-Type: application/json
+
+{
+  "nome": "Sem setor",
+  "descricao": "Falta o setorId."
+}
+
+### 2.10 Atualiza uma categoria -> 200
+PUT {{host}}/categorias/{{criarCategoria.response.body.id}}
+Content-Type: application/json
+
+{
+  "nome": "Telefonia, Ramais e PABX",
+  "descricao": "Ramais sem sinal, ruido na linha, PABX e mudanca de numero.",
+  "setorId": 2
+}
+
+### 2.11 Regra 8: categoria com chamados vinculados -> 409
+DELETE {{host}}/categorias/1
+
+### 2.12 Categoria sem chamados pode ser excluida -> 204
+DELETE {{host}}/categorias/{{criarCategoria.response.body.id}}
+
+
+### =====================================================================================
+### 3. USUARIOS
+### =====================================================================================
+
+### 3.1 Lista usuarios paginada
+GET {{host}}/usuarios?page=0&size=10&sort=nome,asc
+
+### 3.2 Filtro por nome
+GET {{host}}/usuarios?nome=maria
+
+### 3.3 Filtro por tipo
+GET {{host}}/usuarios?tipo=TECNICO
+
+### 3.4 Filtros combinados (tecnicos de um setor)
+GET {{host}}/usuarios?tipo=TECNICO&setorId=1
+
+### 3.5 Tipo invalido -> 400 listando os valores aceitos
+GET {{host}}/usuarios?tipo=DIRETOR
+
+### 3.6 Detalha um usuario
+GET {{host}}/usuarios/1
+
+### 3.7 Cria um solicitante -> 201 + Location
+# @name criarSolicitante
+POST {{host}}/usuarios
+Content-Type: application/json
+
+{
+  "nome": "Paulo Ricardo Nunes",
+  "email": "paulo.nunes@ifrn.edu.br",
+  "matricula": "2026001234",
+  "tipo": "SOLICITANTE"
+}
+
+### 3.8 Cria um tecnico (setor obrigatorio) -> 201 + Location
+# @name criarTecnico
+POST {{host}}/usuarios
+Content-Type: application/json
+
+{
+  "nome": "Luana Barbosa",
+  "email": "luana.barbosa@ifrn.edu.br",
+  "matricula": "2019005678",
+  "tipo": "TECNICO",
+  "setorId": 1
+}
+
+### 3.9 E-mail duplicado -> 409
+POST {{host}}/usuarios
+Content-Type: application/json
+
+{
+  "nome": "Maria Clonada",
+  "email": "MARIA.SILVA@ifrn.edu.br",
+  "matricula": "2026009999",
+  "tipo": "SOLICITANTE"
+}
+
+### 3.10 E-mail mal formatado -> 400
+POST {{host}}/usuarios
+Content-Type: application/json
+
+{
+  "nome": "Email Invalido",
+  "email": "nao-eh-um-email",
+  "matricula": "2026008888",
+  "tipo": "SOLICITANTE"
+}
+
+### 3.11 Tecnico sem setor -> 400
+POST {{host}}/usuarios
+Content-Type: application/json
+
+{
+  "nome": "Tecnico Sem Setor",
+  "email": "semsetor@ifrn.edu.br",
+  "matricula": "2026007777",
+  "tipo": "TECNICO"
+}
+
+### 3.12 Atualiza um usuario -> 200
+PUT {{host}}/usuarios/{{criarSolicitante.response.body.id}}
+Content-Type: application/json
+
+{
+  "nome": "Paulo Ricardo Nunes de Araújo",
+  "email": "paulo.araujo@ifrn.edu.br",
+  "matricula": "2026001234",
+  "tipo": "SOLICITANTE"
+}
+
+### 3.13 Chamados abertos por um solicitante ou atribuidos a um tecnico
+GET {{host}}/usuarios/1/chamados?page=0&size=10&sort=dataAbertura,desc
+
+### 3.14 Chamados do usuario filtrando por status
+GET {{host}}/usuarios/1/chamados?status=RESOLVIDO
+
+### 3.15 Chamados atribuidos a um tecnico
+GET {{host}}/usuarios/4/chamados?status=EM_ATENDIMENTO
+
+
+### =====================================================================================
+### 4. CHAMADOS - abertura e consulta
+### =====================================================================================
+
+### 4.1 Abre um chamado -> 201 (status ABERTO, dataAbertura pelo sistema, prioridade MEDIA)
+# @name abrirChamado
+POST {{host}}/chamados
+Content-Type: application/json
+
+{
+  "titulo": "Ar-condicionado da Sala 5 não gela",
+  "descricao": "O aparelho liga, mas só ventila. A turma da tarde está sendo transferida de sala.",
+  "local": "Sala de Aula 5 - Bloco A",
+  "categoriaId": 5,
+  "solicitanteId": 1
+}
+
+### 4.2 Abre um chamado informando a prioridade -> 201
+# @name abrirChamadoAlta
+POST {{host}}/chamados
+Content-Type: application/json
+
+{
+  "titulo": "Laboratório 1 inteiro sem internet",
+  "descricao": "Nenhuma das 25 máquinas acessa a rede; a aula prática de redes está parada.",
+  "local": "Laboratório de Informática 1 - Bloco B",
+  "prioridade": "ALTA",
+  "categoriaId": 1,
+  "solicitanteId": 3
+}
+
+### 4.3 Regra 2: tecnico nao pode abrir chamado -> 409
+POST {{host}}/chamados
+Content-Type: application/json
+
+{
+  "titulo": "Chamado aberto por tecnico",
+  "descricao": "Deve ser recusado.",
+  "local": "COTIC",
+  "categoriaId": 1,
+  "solicitanteId": 4
+}
+
+### 4.4 Campos obrigatorios ausentes -> 400
+POST {{host}}/chamados
+Content-Type: application/json
+
+{
+  "titulo": "",
+  "descricao": "",
+  "local": "",
+  "categoriaId": 1,
+  "solicitanteId": 1
+}
+
+### 4.5 Prioridade fora do enum -> 400
+POST {{host}}/chamados
+Content-Type: application/json
+
+{
+  "titulo": "Prioridade invalida",
+  "descricao": "Valor fora do dominio.",
+  "local": "Sala 1",
+  "prioridade": "URGENTE",
+  "categoriaId": 1,
+  "solicitanteId": 1
+}
+
+### 4.6 Lista chamados paginada, sem filtros
+GET {{host}}/chamados?page=0&size=10&sort=dataAbertura,desc
+
+### 4.7 Exemplo do enunciado: filtros combinaveis entre si
+GET {{host}}/chamados?status=ABERTO&setorId=1&prioridade=ALTA&page=0&size=10&sort=dataAbertura,desc
+
+### 4.8 Filtro por categoria
+GET {{host}}/chamados?categoriaId=5
+
+### 4.9 Filtro por solicitante
+GET {{host}}/chamados?solicitanteId=1
+
+### 4.10 Filtro por tecnico atribuido
+GET {{host}}/chamados?tecnicoId=4
+
+### 4.11 Filtro por periodo de abertura
+GET {{host}}/chamados?dataInicio=2026-01-01&dataFim=2030-12-31
+
+### 4.12 Status invalido no filtro -> 400
+GET {{host}}/chamados?status=FECHADO
+
+### 4.13 size acima do maximo -> a pagina e limitada a 50 itens
+GET {{host}}/chamados?size=500
+
+### 4.14 Detalha o chamado com o historico de interacoes
+GET {{host}}/chamados/{{abrirChamado.response.body.id}}
+
+### 4.15 Chamado inexistente -> 404
+GET {{host}}/chamados/999
+
+
+### =====================================================================================
+### 5. CHAMADOS - ciclo de vida (PATCH)
+### =====================================================================================
+
+### 5.1 Regra 3: tecnico do setor da categoria assume -> 200 (ABERTO -> EM_ATENDIMENTO)
+PATCH {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/assumir
+Content-Type: application/json
+
+{
+  "tecnicoId": 4
+}
+
+### 5.2 Regra 3: tecnico de outro setor -> 409 (chamado e da MANUT, tecnico e da COTIC)
+PATCH {{host}}/chamados/{{abrirChamado.response.body.id}}/assumir
+Content-Type: application/json
+
+{
+  "tecnicoId": 4
+}
+
+### 5.3 Regra 3: solicitante tentando assumir -> 409
+PATCH {{host}}/chamados/{{abrirChamado.response.body.id}}/assumir
+Content-Type: application/json
+
+{
+  "tecnicoId": 1
+}
+
+### 5.4 Assumir um chamado que ja esta em atendimento -> 409
+PATCH {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/assumir
+Content-Type: application/json
+
+{
+  "tecnicoId": 4
+}
+
+### 5.5 Regra 7: solicitante registra uma interacao -> 201
+POST {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/interacoes
+Content-Type: application/json
+
+{
+  "texto": "O switch do laboratório foi reiniciado pela manhã, sem efeito.",
+  "autorId": 3
+}
+
+### 5.6 Regra 7: tecnico atribuido registra o andamento -> 201
+POST {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/interacoes
+Content-Type: application/json
+
+{
+  "texto": "Identifiquei falha no uplink do rack B. Vou substituir o cabo e testar porta a porta.",
+  "autorId": 4
+}
+
+### 5.7 Regra 7: usuario que nao participa do chamado -> 409
+POST {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/interacoes
+Content-Type: application/json
+
+{
+  "texto": "Palpite de quem não participa do chamado.",
+  "autorId": 2
+}
+
+### 5.8 Interacao sem texto -> 400
+POST {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/interacoes
+Content-Type: application/json
+
+{
+  "texto": "   ",
+  "autorId": 4
+}
+
+### 5.9 Regra 4: solucao obrigatoria -> 400
+PATCH {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/resolver
+Content-Type: application/json
+
+{
+  "tecnicoId": 4,
+  "solucao": "   "
+}
+
+### 5.10 Regra 4: tecnico nao atribuido -> 409
+PATCH {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/resolver
+Content-Type: application/json
+
+{
+  "tecnicoId": 5,
+  "solucao": "Tentativa de outro tecnico."
+}
+
+### 5.11 Regra 4: tecnico atribuido resolve -> 200 (dataFechamento preenchida)
+PATCH {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/resolver
+Content-Type: application/json
+
+{
+  "tecnicoId": 4,
+  "solucao": "Cabo de uplink do rack B rompido. Substituido o cabo e refeita a rotulacao; as 25 maquinas voltaram a acessar a rede."
+}
+
+### 5.12 Regra 6: chamado RESOLVIDO nao aceita novas interacoes -> 409
+POST {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/interacoes
+Content-Type: application/json
+
+{
+  "texto": "Tentativa de interagir em chamado encerrado.",
+  "autorId": 4
+}
+
+### 5.13 Regra 6: chamado RESOLVIDO nao aceita alteracao -> 409
+PATCH {{host}}/chamados/{{abrirChamadoAlta.response.body.id}}/resolver
+Content-Type: application/json
+
+{
+  "tecnicoId": 4,
+  "solucao": "Tentativa de resolver de novo."
+}
+
+### 5.14 Transicao invalida: resolver um chamado ainda ABERTO -> 409
+PATCH {{host}}/chamados/{{abrirChamado.response.body.id}}/resolver
+Content-Type: application/json
+
+{
+  "tecnicoId": 6,
+  "solucao": "Tentativa de pular a etapa de atendimento."
+}
+### 5.15 Regra 5: outro usuario tentando cancelar -> 409
+PATCH {{host}}/chamados/{{abrirChamado.response.body.id}}/cancelar
+Content-Type: application/json
+
+{
+  "solicitanteId": 2
+}
+
+### 5.16 Regra 5: o proprio solicitante cancela enquanto ABERTO -> 200
+PATCH {{host}}/chamados/{{abrirChamado.response.body.id}}/cancelar
+Content-Type: application/json
+
+{
+  "solicitanteId": 1
+}
+
+### 5.17 Regra 5: chamado CANCELADO nao pode ser cancelado de novo -> 409
+PATCH {{host}}/chamados/{{abrirChamado.response.body.id}}/cancelar
+Content-Type: application/json
+
+{
+  "solicitanteId": 1
+}
+
+### 5.18 Chamado inexistente -> 404
+PATCH {{host}}/chamados/999/assumir
+Content-Type: application/json
+
+{
+  "tecnicoId": 4
+}
+
+
+### =====================================================================================
+### 6. ERROS PADRONIZADOS E ROTAS INVALIDAS
+### =====================================================================================
+
+### 6.1 Rota inexistente -> 404
+GET {{host}}/chamado/1
+
+### 6.2 Metodo nao suportado -> 405
+POST {{host}}/setores/1
+
+### 6.3 Id nao numerico -> 400
+GET {{host}}/chamados/abc
+
+### 6.4 JSON malformado -> 400
+POST {{host}}/chamados
+Content-Type: application/json
+
+{ "titulo": "faltou fechar

@@ -1,0 +1,18 @@
+# Itens que nao devem entrar no contexto de build da imagem
+target/
+.git/
+.gitignore
+.github/
+.idea/
+.vscode/
+*.iml
+.env
+.env.*
+!.env.example
+*.log
+README.md
+requisicoes.http
+postman/
+docker-compose.yml
+Dockerfile
+.dockerignore

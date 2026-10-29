@@ -1,0 +1,2440 @@
+{
+  "info": {
+    "name": "Sistema de Chamados do IFRN",
+    "description": "Todas as requisicoes da secao 4 do enunciado (DSC - Projeto API REST - Sistema de Chamados).\n\n**Como executar**\n1. Na raiz do projeto: `docker compose up --build` (API em http://localhost:8080).\n2. Importe esta colecao no Postman (ou no Insomnia, que le o mesmo formato).\n3. Rode as pastas na ordem 1 -> 6.\n\n**Variaveis**\n- `baseUrl`: http://localhost:8080\n- `idSetorNovo`, `idCategoriaNova`, `idSolicitanteNovo`, `idTecnicoNovo`, `idChamadoNovo`, `idChamadoAlta`: preenchidas automaticamente pelos POST de criacao (script de teste).\n\n**Dados iniciais** (criados pelas migrations): setores 1=COTIC, 2=MANUT, 3=BIB; categorias 1 a 6; usuarios 1 a 3 = SOLICITANTE e 4 a 7 = TECNICO (4 e 5 = COTIC, 6 = MANUT, 7 = BIB); chamados 1=ABERTO, 2=EM_ATENDIMENTO, 3=RESOLVIDO, 4=CANCELADO.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Setores",
+      "description": "Cadastro basico de setores. A regra 8 vale para o DELETE.",
+      "item": [
+        {
+          "name": "Listar setores (paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/setores?page=0&size=10&sort=nome,asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "nome,asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar setores filtrando por nome",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/setores?nome=manut",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores"
+              ],
+              "query": [
+                {
+                  "key": "nome",
+                  "value": "manut"
+                }
+              ]
+            },
+            "description": "Filtro 'contem', sem diferenciar maiusculas."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhar setor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/setores/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhar setor inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/setores/999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores",
+                "999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar setor (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/setores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Coordenação de Apoio Acadêmico\",\n  \"sigla\": \"CAAC\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('idSetorNovo', pm.response.json().id);",
+                  "console.log('idSetorNovo = ' + pm.collectionVariables.get('idSetorNovo));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar setor com sigla duplicada (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/setores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Outro setor\",\n  \"sigla\": \"cotic\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar setor com campos vazios (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/setores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"\",\n  \"sigla\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar setor (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/setores/{{idSetorNovo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores",
+                "{{idSetorNovo}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Coordenação de Apoio Acadêmico e Estudantil\",\n  \"sigla\": \"CAAC\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir setor com chamados vinculados (409 - regra 8)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/setores/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir o setor criado (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/setores/{{idSetorNovo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores",
+                "{{idSetorNovo}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar categorias do setor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/setores/1/categorias?page=0&size=10&sort=nome,asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores",
+                "1",
+                "categorias"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "nome,asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Categorias",
+      "description": "Cadastro basico de categorias. A regra 8 vale para o DELETE.",
+      "item": [
+        {
+          "name": "Listar categorias (paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias?page=0&size=10&sort=nome,asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "nome,asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar categorias por nome",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias?nome=wi-fi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ],
+              "query": [
+                {
+                  "key": "nome",
+                  "value": "wi-fi"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar categorias por setor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias?setorId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ],
+              "query": [
+                {
+                  "key": "setorId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar categorias com filtros combinados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias?setorId=2&nome=projetor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ],
+              "query": [
+                {
+                  "key": "setorId",
+                  "value": "2"
+                },
+                {
+                  "key": "nome",
+                  "value": "projetor"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhar categoria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhar categoria inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias",
+                "999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar categoria (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Telefonia e Ramais\",\n  \"descricao\": \"Ramais sem sinal, ruido na linha e mudanca de numero.\",\n  \"setorId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('idCategoriaNova', pm.response.json().id);",
+                  "console.log('idCategoriaNova = ' + pm.collectionVariables.get('idCategoriaNova));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar categoria em setor inexistente (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Categoria orfa\",\n  \"descricao\": \"Setor nao existe.\",\n  \"setorId\": 999\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar categoria sem setorId (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Sem setor\",\n  \"descricao\": \"Falta o setorId.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar categoria (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/{{idCategoriaNova}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias",
+                "{{idCategoriaNova}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Telefonia, Ramais e PABX\",\n  \"descricao\": \"Ramais sem sinal, ruido na linha, PABX e mudanca de numero.\",\n  \"setorId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir categoria com chamados vinculados (409 - regra 8)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir a categoria criada (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/{{idCategoriaNova}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias",
+                "{{idCategoriaNova}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Usuarios",
+      "description": "Solicitantes e tecnicos. E-mail duplicado retorna 409.",
+      "item": [
+        {
+          "name": "Listar usuarios (paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios?page=0&size=10&sort=nome,asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "nome,asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar usuarios por nome",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios?nome=maria",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ],
+              "query": [
+                {
+                  "key": "nome",
+                  "value": "maria"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar usuarios por tipo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios?tipo=TECNICO",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "TECNICO"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar usuarios por tipo e setor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios?tipo=TECNICO&setorId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "TECNICO"
+                },
+                {
+                  "key": "setorId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar usuarios com tipo invalido (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios?tipo=DIRETOR",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "DIRETOR"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhar usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar solicitante (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Paulo Ricardo Nunes\",\n  \"email\": \"paulo.nunes@ifrn.edu.br\",\n  \"matricula\": \"2026001234\",\n  \"tipo\": \"SOLICITANTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('idSolicitanteNovo', pm.response.json().id);",
+                  "console.log('idSolicitanteNovo = ' + pm.collectionVariables.get('idSolicitanteNovo));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar tecnico (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Luana Barbosa\",\n  \"email\": \"luana.barbosa@ifrn.edu.br\",\n  \"matricula\": \"2019005678\",\n  \"tipo\": \"TECNICO\",\n  \"setorId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('idTecnicoNovo', pm.response.json().id);",
+                  "console.log('idTecnicoNovo = ' + pm.collectionVariables.get('idTecnicoNovo));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar usuario com e-mail duplicado (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Maria Clonada\",\n  \"email\": \"MARIA.SILVA@ifrn.edu.br\",\n  \"matricula\": \"2026009999\",\n  \"tipo\": \"SOLICITANTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar usuario com e-mail invalido (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Email Invalido\",\n  \"email\": \"nao-eh-um-email\",\n  \"matricula\": \"2026008888\",\n  \"tipo\": \"SOLICITANTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar tecnico sem setor (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Tecnico Sem Setor\",\n  \"email\": \"semsetor@ifrn.edu.br\",\n  \"matricula\": \"2026007777\",\n  \"tipo\": \"TECNICO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar usuario (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{idSolicitanteNovo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{idSolicitanteNovo}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Paulo Ricardo Nunes de Araújo\",\n  \"email\": \"paulo.araujo@ifrn.edu.br\",\n  \"matricula\": \"2026001234\",\n  \"tipo\": \"SOLICITANTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Chamados de um usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/1/chamados?page=0&size=10&sort=dataAbertura,desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "1",
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "dataAbertura,desc"
+                }
+              ]
+            },
+            "description": "Chamados abertos pelo solicitante ou atribuidos ao tecnico."
+          },
+          "response": []
+        },
+        {
+          "name": "Chamados de um usuario por status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/1/chamados?status=RESOLVIDO",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "1",
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "RESOLVIDO"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Chamados atribuidos a um tecnico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/4/chamados?status=EM_ATENDIMENTO",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "4",
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "EM_ATENDIMENTO"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Chamados de usuario inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/999/chamados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "999",
+                "chamados"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Chamados - abertura e consulta",
+      "description": "Abertura e consultas. Os dois primeiros POST criam chamados novos e guardam os ids nas variaveis de colecao `idChamadoNovo` (categoria da MANUT) e `idChamadoAlta` (categoria da COTIC), usadas na pasta 5.",
+      "item": [
+        {
+          "name": "Abrir chamado (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ]
+            },
+            "description": "Regra 1: nasce ABERTO, com dataAbertura preenchida pelo sistema e prioridade MEDIA quando omitida.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Ar-condicionado da Sala 5 não gela\",\n  \"descricao\": \"O aparelho liga, mas só ventila. A turma da tarde está sendo transferida de sala.\",\n  \"local\": \"Sala de Aula 5 - Bloco A\",\n  \"categoriaId\": 5,\n  \"solicitanteId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('idChamadoNovo', pm.response.json().id);",
+                  "console.log('idChamadoNovo = ' + pm.collectionVariables.get('idChamadoNovo));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Abrir chamado com prioridade ALTA (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Laboratório 1 inteiro sem internet\",\n  \"descricao\": \"Nenhuma das 25 máquinas acessa a rede; a aula prática de redes está parada.\",\n  \"local\": \"Laboratório de Informática 1 - Bloco B\",\n  \"prioridade\": \"ALTA\",\n  \"categoriaId\": 1,\n  \"solicitanteId\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('idChamadoAlta', pm.response.json().id);",
+                  "console.log('idChamadoAlta = ' + pm.collectionVariables.get('idChamadoAlta));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Abrir chamado sendo tecnico (409 - regra 2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Chamado aberto por tecnico\",\n  \"descricao\": \"Deve ser recusado.\",\n  \"local\": \"COTIC\",\n  \"categoriaId\": 1,\n  \"solicitanteId\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Abrir chamado com campos vazios (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"\",\n  \"descricao\": \"\",\n  \"local\": \"\",\n  \"categoriaId\": 1,\n  \"solicitanteId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Abrir chamado com prioridade invalida (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Prioridade invalida\",\n  \"descricao\": \"Valor fora do dominio.\",\n  \"local\": \"Sala 1\",\n  \"prioridade\": \"URGENTE\",\n  \"categoriaId\": 1,\n  \"solicitanteId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Abrir chamado com categoria inexistente (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Categoria inexistente\",\n  \"descricao\": \"Deve retornar 404.\",\n  \"local\": \"Sala 1\",\n  \"categoriaId\": 999,\n  \"solicitanteId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar chamados (paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados?page=0&size=10&sort=dataAbertura,desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "dataAbertura,desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar chamados - exemplo do enunciado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados?status=ABERTO&setorId=1&prioridade=ALTA&page=0&size=10&sort=dataAbertura,desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ABERTO"
+                },
+                {
+                  "key": "setorId",
+                  "value": "1"
+                },
+                {
+                  "key": "prioridade",
+                  "value": "ALTA"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "dataAbertura,desc"
+                }
+              ]
+            },
+            "description": "Filtros combinaveis entre si; filtro nao informado e ignorado."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar chamados por categoria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados?categoriaId=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "categoriaId",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar chamados por solicitante",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados?solicitanteId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "solicitanteId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar chamados por tecnico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados?tecnicoId=4",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "tecnicoId",
+                  "value": "4"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar chamados por setor responsavel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados?setorId=2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "setorId",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar chamados por periodo de abertura",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados?dataInicio=2026-01-01&dataFim=2030-12-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "dataInicio",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "dataFim",
+                  "value": "2030-12-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar chamados com status invalido (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados?status=FECHADO",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "FECHADO"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar chamados com size acima do maximo (limita a 50)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados?size=500",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "500"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhar chamado com interacoes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "3"
+              ]
+            },
+            "description": "Chamado RESOLVIDO dos dados iniciais, com historico completo."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhar o chamado criado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhar chamado inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Chamados - ciclo de vida",
+      "description": "Execute de cima para baixo: os primeiros pedidos provocam os 409 esperados e os ultimos percorrem o caminho feliz ABERTO -> EM_ATENDIMENTO -> RESOLVIDO, alem do cancelamento.\n\nUsa `{{idChamadoAlta}}` (categoria da COTIC, tecnico 4 da COTIC) e `{{idChamadoNovo}}` (categoria da MANUT) criados na pasta 4, mais os chamados dos dados iniciais (3 = RESOLVIDO e 4 = CANCELADO) para as violacoes da regra 6.",
+      "item": [
+        {
+          "name": "Solicitante tenta assumir (409 - regra 3)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/assumir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "assumir"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tecnico de outro setor tenta assumir (409 - regra 3)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/assumir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "assumir"
+              ]
+            },
+            "description": "O chamado e de uma categoria da COTIC; o tecnico 6 e lotado na MANUT.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolver chamado ainda ABERTO (409 - transicao invalida)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/resolver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "resolver"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 4,\n  \"solucao\": \"Tentativa de pular a etapa de atendimento.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Interacao do solicitante (201 - regra 7)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/interacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "interacoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"O switch do laboratório foi reiniciado pela manhã, sem efeito.\",\n  \"autorId\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Interacao de quem nao participa do chamado (409 - regra 7)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/interacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "interacoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"Palpite de quem não participa do chamado.\",\n  \"autorId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Interacao sem texto (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/interacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "interacoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"   \",\n  \"autorId\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tecnico do setor assume (200 - regra 3)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/assumir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "assumir"
+              ]
+            },
+            "description": "ABERTO -> EM_ATENDIMENTO.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assumir de novo (409)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/assumir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "assumir"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Interacao do tecnico atribuido (201 - regra 7)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/interacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "interacoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"Identifiquei falha no uplink do rack B. Vou substituir o cabo.\",\n  \"autorId\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolver sem solucao (400 - regra 4)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/resolver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "resolver"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 4,\n  \"solucao\": \"   \"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolver por tecnico nao atribuido (409 - regra 4)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/resolver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "resolver"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 5,\n  \"solucao\": \"Tentativa de outro tecnico da COTIC.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Interacao em chamado RESOLVIDO (409 - regra 6)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/3/interacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "3",
+                "interacoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"Tentativa de interagir em chamado encerrado.\",\n  \"autorId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Alterar chamado RESOLVIDO (409 - regra 6)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/3/resolver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "3",
+                "resolver"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 4,\n  \"solucao\": \"Tentativa de resolver de novo.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tecnico atribuido resolve (200 - regra 4)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/resolver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "resolver"
+              ]
+            },
+            "description": "EM_ATENDIMENTO -> RESOLVIDO, com solucao e dataFechamento preenchidas.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 4,\n  \"solucao\": \"Cabo de uplink do rack B rompido. Substituido o cabo e refeita a rotulacao; as 25 maquinas voltaram a acessar a rede.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolver de novo (409 - regra 6)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoAlta}}/resolver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoAlta}}",
+                "resolver"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 4,\n  \"solucao\": \"Nao deve funcionar.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Outro usuario tenta cancelar (409 - regra 5)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoNovo}}/cancelar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoNovo}}",
+                "cancelar"
+              ]
+            },
+            "description": "O chamado foi aberto pelo usuario 1.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"solicitanteId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancelar chamado em atendimento (409 - regra 5)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/2/cancelar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "2",
+                "cancelar"
+              ]
+            },
+            "description": "So e possivel cancelar enquanto o chamado estiver ABERTO.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"solicitanteId\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancelar chamado ja CANCELADO (409 - regra 6)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/4/cancelar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "4",
+                "cancelar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"solicitanteId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Solicitante cancela o proprio chamado ABERTO (200 - regra 5)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoNovo}}/cancelar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoNovo}}",
+                "cancelar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"solicitanteId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancelar de novo (409 - regra 6)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/{{idChamadoNovo}}/cancelar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "{{idChamadoNovo}}",
+                "cancelar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"solicitanteId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assumir chamado inexistente (404)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/999/assumir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "999",
+                "assumir"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tecnicoId\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Erros e rotas invalidas",
+      "description": "Todo erro devolve o mesmo JSON: timestamp, status, mensagem e caminho.",
+      "item": [
+        {
+          "name": "Rota inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamado/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamado",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Metodo nao suportado (405)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/setores/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setores",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Id nao numerico (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chamados/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados",
+                "abc"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "JSON malformado (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chamados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chamados"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"titulo\": \"faltou fechar",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "idSetorNovo",
+      "value": "4",
+      "type": "string"
+    },
+    {
+      "key": "idCategoriaNova",
+      "value": "7",
+      "type": "string"
+    },
+    {
+      "key": "idSolicitanteNovo",
+      "value": "8",
+      "type": "string"
+    },
+    {
+      "key": "idTecnicoNovo",
+      "value": "9",
+      "type": "string"
+    },
+    {
+      "key": "idChamadoNovo",
+      "value": "5",
+      "type": "string"
+    },
+    {
+      "key": "idChamadoAlta",
+      "value": "6",
+      "type": "string"
+    }
+  ]
+}

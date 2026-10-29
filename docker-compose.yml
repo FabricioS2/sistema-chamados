@@ -1,0 +1,51 @@
+name: sistema-chamados
+
+# Sobe a API e o PostgreSQL. Nao ha nenhum passo manual: as migrations do Flyway
+# rodam sozinhas na inicializacao e o Hibernate apenas valida o esquema.
+#
+#   docker compose up --build      (http://localhost:8080)
+#   docker compose down -v         (remove tambem os dados do banco)
+#
+# As senhas abaixo sao padroes de desenvolvimento e podem ser sobrescritas por um
+# arquivo .env (veja .env.example). Em producao, defina sempre POSTGRES_PASSWORD.
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: chamados-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-chamados}
+      POSTGRES_USER: ${POSTGRES_USER:-chamados}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chamados123}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - chamados-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-chamados} -d $${POSTGRES_DB:-chamados}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sistema-chamados:1.0.0
+    container_name: chamados-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-chamados}
+      DB_USERNAME: ${POSTGRES_USER:-chamados}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-chamados123}
+      SERVER_PORT: 8080
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+volumes:
+  chamados-pgdata:
